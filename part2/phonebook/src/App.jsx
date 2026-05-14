@@ -1,4 +1,11 @@
 import { useState } from 'react'
+import Filter from './Filter'
+import PersonForm from './PersonForm'
+import Persons from './Persons'
+import { useEffect } from 'react'
+import axios from 'axios';
+
+import personService from './services/person'
 
 const App = () => {
   const [persons, setPersons] = useState([
@@ -24,9 +31,17 @@ const App = () => {
       number: newNum
     }
 
-    setPersons(persons.concat(pObj));
-    setNewName(''); // set it to no name again
-    setNewNum('');
+    personService
+      .create(pObj)  // pass in the newly created obj
+      .then(data=>{
+          setPersons(persons.concat(data))
+          setNewName(''); // set it to no name again
+          setNewNum('');
+
+      })
+
+
+    
   }
 
   const handleNameChange = (e) =>{
@@ -34,7 +49,7 @@ const App = () => {
     setNewName(e.target.value);
   }
 
-  const [newNum,setNewNum] = useState()
+  const [newNum,setNewNum] = useState('')
   const handleNumChange = (e) =>{
     setNewNum(e.target.value)
   }
@@ -44,48 +59,35 @@ const App = () => {
     setSearch(e.target.value)
   }
 
+  useEffect(() =>{
+    personService
+    .getAll() // get request .THEN takes in whver data return by getall which is r
+    .then(data=>{
+        setPersons(data)
+    })
+
+  },[])
+
+
   return (
     <div>
       <h2>Phonebook</h2>
-      <form onSubmit={handleFormSubmit}>
-        {/* submit call  */}
-        <div>
-          filter shown with 
-          <input
-          value = {search}
-          onChange = {handleSearch}
-          
-          />
 
-        </div>
+      <Filter search={search} handleSearch={handleSearch} />
 
-        <h2>Add a new</h2>
-        <div>
-          name: <input 
-          value = {newName}
-          onChange = {handleNameChange}/>
-          {/* make it controlled by reactd with the value = to state */}
-        </div>
-        <div>
-          number: <input
-          value = {newNum}
-          onChange = {handleNumChange}
-          
-          />
-        </div>
-        <div>
-          <button type="submit">add</button>
-        </div>
-      </form>
-      <h2>Numbers</h2>
-      {persons
-      .filter(p => p.name.includes(search))
-      .map(p => (
-        <li key={p.name}>
-          {p.name} {p.number}
-        </li>
-      ))
-    }
+      <h3>Add a new</h3>
+
+      <PersonForm
+        handleFormSubmit={handleFormSubmit}
+        newName={newName}
+        handleNameChange={handleNameChange}
+        newNum={newNum}
+        handleNumChange={handleNumChange}
+      />
+
+      <h3>Numbers</h3>
+
+      <Persons persons={persons} search={search} />
     </div>
   )
 }
