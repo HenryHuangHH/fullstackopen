@@ -1,28 +1,53 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Filter from './Filter'
 import PersonForm from './PersonForm'
 import Persons from './Persons'
-import { useEffect } from 'react'
-import axios from 'axios';
-
+import Notification from './components/Notification'
 import personService from './services/person'
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas', number: 778}
-  ]) 
+  const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
+  const [notificationMessage, setNotificationMessage] = useState(null)
+
+  const showNotification = (msg) => {
+    setNotificationMessage(msg)
+    setTimeout(() => {
+      setNotificationMessage(null)
+    }, 5000)
+  }
 
   const handleFormSubmit = (e) =>{
     e.preventDefault();
 
-    const nameExist = persons.some(
-      p => p.name === newName
-    )
+    // const nameExist = persons.some(
+    //   p => p.name === newName
+    // ) 
     // .some return true or false
 
-    if(nameExist){
-      alert(`${newName} is already in the phonebook`)
+    const existPerson = persons.find(
+      p => p.name === newName
+    ) // entire person obj saved
+
+    if(existPerson){
+      // alert(`${newName} is already in the phonebook`)
+
+      if(window.confirm(`${newName} is already in the phonebook, repace old num with new one`)){
+        const newNumberPersonObj = {
+        ...existPerson,
+        number: newNum
+      }
+
+        personService.updateNumber(existPerson.id,newNumberPersonObj)
+        .then(returnObj =>{
+            setPersons((prev) => prev.map((p) => (p.id !== existPerson.id ? p : returnObj)))
+              setNewName('')
+              setNewNum('')
+              showNotification(`Number for ${newName} was updated`)
+          }
+        ) // make it in sync with the backedn
+
+      }
       return 
     }
 
@@ -37,11 +62,8 @@ const App = () => {
           setPersons(persons.concat(data))
           setNewName(''); // set it to no name again
           setNewNum('');
-
+          showNotification(`Added ${data.name}`)
       })
-
-
-    
   }
 
   const handleNameChange = (e) =>{
@@ -59,6 +81,15 @@ const App = () => {
     setSearch(e.target.value)
   }
 
+  const handleDelete = (id,name) =>{
+    if(window.confirm(`delete ${name}`)){
+        personService.remove(id).then( ()=>{
+          setPersons(persons.filter(p => p.id !== id))
+        })
+    }
+
+  }
+
   useEffect(() =>{
     personService
     .getAll() // get request .THEN takes in whver data return by getall which is r
@@ -72,6 +103,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={notificationMessage} />
 
       <Filter search={search} handleSearch={handleSearch} />
 
@@ -87,7 +119,7 @@ const App = () => {
 
       <h3>Numbers</h3>
 
-      <Persons persons={persons} search={search} />
+      <Persons persons={persons} search={search} handleDelete={handleDelete}/>
     </div>
   )
 }
