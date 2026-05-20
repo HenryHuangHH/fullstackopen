@@ -14,6 +14,14 @@ const create = (newP) => {
 
 }
 
+const remove = (id) => {
+    return axios.delete(`${baseUrl}/${id}`)
+}
+
+const updateNumber = (id, Newnumber) => {
+    return axios.put(`${baseUrl}/${id}`, Newnumber).then((response) => response.data)
+}
 
 
-export default { getAll, create }
+
+export default { getAll, create, remove, updateNumber }
