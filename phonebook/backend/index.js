@@ -1,7 +1,9 @@
 // require just load shte expres spackage 
 const express = require('express')
+const cors = require('cors') // to allow cross-origin requests
 const app = express() // server 
 
+app.use(cors())
 app.use(express.json())
 
 const morgan = require('morgan')
@@ -94,7 +96,7 @@ app.post('/api/persons', (req, res) => {
     }
 
     data = data.concat(newPerson)
-    res.json(data)
+    res.json(newPerson)
 })
 
 
