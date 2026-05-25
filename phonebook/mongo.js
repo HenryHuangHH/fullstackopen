@@ -1,0 +1,46 @@
+// Command line format: node mongo.js yourpassword Anna 040-1234556
+const mongoose = require('mongoose')
+
+const password = process.argv[2]
+
+const url =
+    `mongodb+srv://henry:${password}@cluster0.koc8p7e.mongodb.net/phonebookApp?retryWrites=true&w=majority`
+
+mongoose.connect(url)
+
+const personSchema = new mongoose.Schema({
+    name: String,
+    number: String,
+})
+
+const Person = mongoose.model('Person', personSchema)
+// use Person to find data in mongodb
+
+if (process.argv.length === 3) {
+
+    Person.find({}).then(result => { // find all the peopel in teh database
+        console.log('phonebook:')
+        result.forEach(person => {
+            console.log(`${person.name} ${person.number}`)
+        })
+        mongoose.connection.close()
+    })
+
+
+} else {
+    const name = process.argv[3]
+    const number = process.argv[4]
+
+    const newPerson = new Person({
+        // persons: process.argv[3],
+        name,
+        number
+    })
+
+    newPerson.save().then(() => {
+        console.log(`added ${name} number ${number} to phonebook`)
+        mongoose.connection.close()
+    })
+
+}
+
