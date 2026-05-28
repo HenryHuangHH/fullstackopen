@@ -1,78 +1,83 @@
+// four paramter middleware mean it is error middleware, first is error
+// middleware 3 or more paramter in https reqyuest
+//next go to next middleware, next(err) go to the one with eror 
+
 // require just load shte expres spackage 
 const express = require('express')
 const cors = require('cors') // to allow cross-origin requests
 const app = express() // server 
 
+// import dotenv from 'dotenv'
+// dotenv.config() // the two liesn are same as 
+require('dotenv').config()
+
+const Person = require('./models/person') // Person modle to connect to db
+
 app.use(cors())
 app.use(express.json())
 app.use(express.static('dist'))
 
-
+// log the reqeust on the terminal
 const morgan = require('morgan')
 app.use(morgan('tiny'))
 
-let data = [
-    {
-        "id": "1",
-        "name": "Arto Hellas",
-        "number": "040-123456"
-    },
-    {
-        "id": "2",
-        "name": "Ada Lovelace",
-        "number": "39-44-5323523"
-    },
-    {
-        "id": "3",
-        "name": "Dan Abramov",
-        "number": "12-43-234345"
-    },
-    {
-        "id": "4",
-        "name": "Mary Poppendieck",
-        "number": "39-23-6423122"
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+
+    if (error.name === 'CastError') {
+        return response.status(400).send({ error: 'malformatted id' })
     }
-]
+
+    next(error)
+}
 
 // api/perosns can be anythign that i want 
 app.get('/api/persons', (request, response) => {
-    response.json(data)
+    // Person is the model we imported
+    Person.find({}).then(data => {
+        response.json(data)
+    }) // .then runs when prmise is fullfilled
 })
 
 app.get('/info', (request, response) => {
 
     const time = new Date()
-    response.send(`
-        <p>Phonebook has info for ${data.length} people</p>
-        <p>${time}</p>
+    Person.countDocuments({}).then(count => {
+        response.send(`
+      <p>Phonebook has info for ${count} people</p>
+      <p>${time}</p>
     `)
+    })
 
 })
 
-app.get('/api/persons/:id', (req, res) => {
-    const id = req.params.id; // 1 or 3 or whatever u are in right now
-
-    // params include the dictionary of all the (: things) (id is bc it is a placeholder)
-
-    const thisPerson = data.find((d) => d.id === id)
-
-    if (thisPerson) {
-        res.json(thisPerson)
-    } else {
-        res.status(404).end()
-    }
+app.get('/api/persons/:id', (req, res, next) => {
+    Person.findById(req.params.id)
+        .then(p => {
+            if (p) { // if person exist 
+                res.json(p)
+            } else {
+                res.status(404).end()
+            }
+        })
+        .catch(err => {
+            next(err)
+            // console.log(err)
+            // res.status(400).send({ error: 'malformatted id' })
+            // 400 bad request client give invalid request
+        })
 })
 
-app.delete('/api/persons/:id', (req, res) => {
-    const id = req.params.id;
+app.delete('/api/persons/:id', (req, res, next) => {
 
-    // filter keeps whatever that fullfill the requirement 
-    data = data.filter((d) => d.id !== id)
-    res.status(204).end() // req sucess no content
+    Person.findByIdAndDelete(req.params.id).then(() => {
+        res.status(204).end() // req sucess no content
+    })
+        .catch(err => next(err))
 })
 
 app.post('/api/persons', (req, res) => {
-
+    //getbody(data) of the http requres r
     const body = req.body
 
     if (!body.name || !body.number) {
@@ -82,28 +87,44 @@ app.post('/api/persons', (req, res) => {
         })
     }
 
-    const dup = data.find(d => d.name === body.name)
-    if (dup) {
-        return res.status(400).json({
-            error: 'name is not unqiue'
-        })
-    }
-
-
-
-    const newPerson = {
-        id: String(Math.floor(Math.random() * 10000000)),
+    const newPerson = new Person({
         name: body.name,
         number: body.number
-    }
+    }) // new Person model
 
-    data = data.concat(newPerson)
-    res.json(newPerson)
+    // newPerson is an instance of the Person model so it can save 
+
+    newPerson.save().then(savedP =>
+        res.json(savedP)
+    )
 })
 
+// app.put('/api/notes/:id', (request, response, next) => {
+//   const { content, important } = request.body
 
+//   Note.findById(request.params.id)
+//     .then(note => {
+//       if (!note) {
+//         return response.status(404).end()
+//       }
 
-const PORT = 3001
+//       note.content = content
+//       note.important = important
+
+//       return note.save().then((updatedNote) => {
+//         response.json(updatedNote)
+//       })
+//     })
+//     .catch(error => next(error))
+// })
+
+// this has to be the last loaded middleware
+app.use(errorHandler)
+
+const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
+
+
+
