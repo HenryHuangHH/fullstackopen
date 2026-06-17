@@ -3,7 +3,7 @@ import Filter from './Filter'
 import PersonForm from './PersonForm'
 import Persons from './Persons'
 import Notification from './components/Notification'
-import personService from './services/person'
+import personService from './services/person' // tihgn we import can be named whver we want
 
 const App = () => {
   const [persons, setPersons] = useState([])
@@ -91,9 +91,9 @@ const App = () => {
   }
 
   useEffect(() =>{
-    personService
+    personService // getall from person.js
     .getAll() // get request .THEN takes in whver data return by getall which is r
-    .then(data=>{
+    .then(data=>{ 
         setPersons(data)
     })
 

@@ -4,7 +4,7 @@
 
 // require just load shte expres spackage 
 const express = require('express')
-const cors = require('cors') // to allow cross-origin requests
+const cors = require('cors') // to allow cross-origin requests(ex frontend getting acess)
 const app = express() // server 
 
 // import dotenv from 'dotenv'
@@ -22,81 +22,81 @@ const morgan = require('morgan')
 app.use(morgan('tiny'))
 
 const errorHandler = (error, request, response, next) => {
-    console.error(error.message)
+  console.error(error.message)
 
-    if (error.name === 'CastError') {
-        return response.status(400).send({ error: 'malformatted id' })
-    }
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  }
 
-    next(error)
+  next(error)
 }
 
 // api/perosns can be anythign that i want 
 app.get('/api/persons', (request, response) => {
-    // Person is the model we imported
-    Person.find({}).then(data => {
-        response.json(data)
-    }) // .then runs when prmise is fullfilled
+  // Person is the model we imported
+  Person.find({}).then(data => {
+    response.json(data)
+  }) // .then runs when prmise is fullfilled
 })
 
 app.get('/info', (request, response) => {
 
-    const time = new Date()
-    Person.countDocuments({}).then(count => {
-        response.send(`
+  const time = new Date()
+  Person.countDocuments({}).then(count => {
+    response.send(`
       <p>Phonebook has info for ${count} people</p>
       <p>${time}</p>
     `)
-    })
+  })
 
 })
 
 app.get('/api/persons/:id', (req, res, next) => {
-    Person.findById(req.params.id)
-        .then(p => {
-            if (p) { // if person exist 
-                res.json(p)
-            } else {
-                res.status(404).end()
-            }
-        })
-        .catch(err => {
-            next(err)
-            // console.log(err)
-            // res.status(400).send({ error: 'malformatted id' })
-            // 400 bad request client give invalid request
-        })
+  Person.findById(req.params.id)
+    .then(p => {
+      if (p) { // if person exist 
+        res.json(p)
+      } else {
+        res.status(404).end()
+      }
+    })
+    .catch(err => {
+      next(err)
+      // console.log(err)
+      // res.status(400).send({ error: 'malformatted id' })
+      // 400 bad request client give invalid request
+    })
 })
 
 app.delete('/api/persons/:id', (req, res, next) => {
 
-    Person.findByIdAndDelete(req.params.id).then(() => {
-        res.status(204).end() // req sucess no content
-    })
-        .catch(err => next(err))
+  Person.findByIdAndDelete(req.params.id).then(() => {
+    res.status(204).end() // req sucess no content
+  })
+    .catch(err => next(err))
 })
 
 app.post('/api/persons', (req, res) => {
-    //getbody(data) of the http requres r
-    const body = req.body
+  //getbody(data) of the http requres r
+  const body = req.body
 
-    if (!body.name || !body.number) {
-        // 400 is bad request incompelete or sth 
-        return res.status(400).json({
-            error: 'content missing'
-        })
-    }
+  if (!body.name || !body.number) {
+    // 400 is bad request incompelete or sth 
+    return res.status(400).json({
+      error: 'content missing'
+    })
+  }
 
-    const newPerson = new Person({
-        name: body.name,
-        number: body.number
-    }) // new Person model
+  const newPerson = new Person({
+    name: body.name,
+    number: body.number
+  }) // new Person model
 
-    // newPerson is an instance of the Person model so it can save 
+  // newPerson is an instance of the Person model so it can save 
 
-    newPerson.save().then(savedP =>
-        res.json(savedP)
-    )
+  newPerson.save().then(savedP =>
+    res.json(savedP)
+  )
 })
 
 // app.put('/api/notes/:id', (request, response, next) => {
@@ -123,7 +123,7 @@ app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
+  console.log(`Server running on port ${PORT}`)
 })
 
 
