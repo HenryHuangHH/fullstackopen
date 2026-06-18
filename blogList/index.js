@@ -1,6 +1,12 @@
 const express = require('express')
 const mongoose = require('mongoose')
+
+const config = require('./utils/config')
+const logger = require('./utils/logger')
+
 require('dotenv').config()
+
+
 
 const app = express()
 
@@ -14,7 +20,8 @@ const blogSchema = mongoose.Schema({
 const Blog = mongoose.model('Blog', blogSchema)
 
 // const mongoUrl = 'mongodb://localhost/bloglist'
-mongoose.connect(process.env.url, { family: 4 })
+mongoose.connect(config.URL, { family: 4 })
+//imported URL form config 
 
 app.use(express.json())
 
@@ -32,7 +39,7 @@ app.post('/api/blogs', (request, response) => {
     })
 })
 
-const PORT = 3003
+const PORT = config.PORT || 3000
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
