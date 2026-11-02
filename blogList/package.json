@@ -5,7 +5,7 @@
   "scripts": {
     "start": "NODE_ENV=production node index.js",
     "dev": "NODE_ENV=development node --watch index.js",
-    "test": "NODE_ENV=test node --test"
+    "test": "NODE_ENV=test node --test test/apiTest.js"
   },
   "author": "",
   "license": "ISC",
@@ -14,7 +14,7 @@
     "cross-env": "^10.1.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "mongoose": "^9.7.1"
+    "mongoose": "^8.24.1"
   },
   "devDependencies": {
     "supertest": "^7.2.2"
